@@ -51,19 +51,48 @@ async function run() {
 
 
     app.get("/products",async(req ,res)=>{
-      const {currentPage}=req.query;
+      const {currentPage ,search ,sort,category}=req.query;
+      let query ={}
+      let sortOPtion ={}
+      if (sort === "highToLow") {
+        sortOPtion.price = -1;
+      }
+      if (sort === "LowToHigh") {
+        sortOPtion.price = 1;
+      }
+      if (sort === "new") {
+        sortOPtion.creationDateTime = -1;
+      }
+      
+      if (search) {
+        query.productName={$regex:search , $options:"i"}
+        
+       }
+       if (category) {
+        query.category=category;
+       }
+       console.log(category);
+       
       const limit = 9;
       const skip = parseInt(currentPage) * limit;
-      const result =await ProductsCollation.find().skip(skip).limit(limit).toArray()
+      const result =await ProductsCollation.find(query).sort(sortOPtion).skip(skip).limit(limit).toArray()
       res.send(result)
     });
 
 
     app.get("/totalProducts",async(req,res)=>{
-      console.log("hit")
-      const count = await ProductsCollation.countDocuments()
+      const {search ,category}=req.query;
+
+      let query = {}
+      if (category) {
+        query.category =category
+      }
+      if (search) {
+       query.productName={$regex:search , $options:"i"}
+       
+      }
+      const count = await ProductsCollation.countDocuments(query)
       res.send({count})
-      console.log(count)
     });
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
