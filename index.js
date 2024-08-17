@@ -27,33 +27,13 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    const ProductsCollation=client.db("JOBTask").collection("products")
-
-
-// const page = parseInt(req.query.page) || 1; // Default to page 1
-        // const limit = parseInt(req.query.limit) || 10; // Default to 10 products per page
-    
-        // const skip = (page - 1) * limit; // Calculate the number of documents to skip
-    
-        // const total = await productCollection.countDocuments(); // Get total number of products
-        // const pages = Math.ceil(total / limit); // Calculate total pages
-    
-        // const products = await productCollection.find()
-        //     .skip(skip)
-        //     .limit(limit)
-        //     .toArray();
-    
-        // res.send({
-        //     products,
-        //     total,
-        //     page,
-        //     pages
-
-
-    app.get("/products",async(req ,res)=>{
-      const {currentPage ,search ,sort,category}=req.query;
-      let query ={}
-      let sortOPtion ={}
+    const ProductsCollation = client.db("JOBTask").collection("products")
+    app.get("/products", async (req, res) => {
+      const { currentPage, search, sort, category, brand, maxPrice, minPrice } = req.query;
+      let query = {}
+      let sortOPtion = {}
+      console.log(maxPrice ,minPrice);
+      
       if (sort === "highToLow") {
         sortOPtion.price = -1;
       }
@@ -63,36 +43,51 @@ async function run() {
       if (sort === "new") {
         sortOPtion.creationDateTime = -1;
       }
-      
+      if (brand) {
+        query.brandName = brand
+      }
       if (search) {
-        query.productName={$regex:search , $options:"i"}
-        
-       }
-       if (category) {
-        query.category=category;
-       }
-       console.log(category);
-       
+        query.productName = { $regex: search, $options: "i" }
+
+      }
+      if (category) {
+        query.category = category
+      }
+      if (minPrice && maxPrice) {
+       query.price ={ $gte:parseInt(minPrice), $lte:parseInt(maxPrice) }
+      }
+
       const limit = 9;
       const skip = parseInt(currentPage) * limit;
-      const result =await ProductsCollation.find(query).sort(sortOPtion).skip(skip).limit(limit).toArray()
+      const result = await ProductsCollation.find(query).sort(sortOPtion).skip(skip).limit(limit).toArray()
       res.send(result)
     });
 
 
-    app.get("/totalProducts",async(req,res)=>{
-      const {search ,category}=req.query;
+    app.get("/totalProducts", async (req, res) => {
+      const { search, category, brand, maxPrice, minPrice } = req.query;
+      console.log(brand);
 
       let query = {}
+
+
       if (category) {
-        query.category =category
+        query.category = category
+      }
+      if (brand) {
+        query.brandName = brand
       }
       if (search) {
-       query.productName={$regex:search , $options:"i"}
-       
+        query.productName = { $regex: search, $options: "i" }
+
       }
+      if (minPrice && maxPrice) {
+        console.log("hee " ,maxPrice)
+        query.price ={ $gte:parseInt(minPrice), $lte:parseInt(maxPrice) }
+       }
+
       const count = await ProductsCollation.countDocuments(query)
-      res.send({count})
+      res.send({ count })
     });
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
