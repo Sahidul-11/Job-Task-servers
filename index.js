@@ -91,7 +91,6 @@ async function run() {
 
       }
       if (minPrice && maxPrice) {
-        console.log("hee " ,maxPrice)
         query.price ={ $gte:parseInt(minPrice), $lte:parseInt(maxPrice) }
        }
 
