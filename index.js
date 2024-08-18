@@ -7,10 +7,19 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "https://serene-tarsier-78925d.netlify.app",
+    ],
+    credentials: true,
+  })
+);
+
 app.use(express.json());
 
 // Enable CORS for all routes
-app.use(cors());
 
 
 
@@ -90,9 +99,9 @@ async function run() {
       res.send({ count })
     });
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
-    // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
+    // await client.connect();
+    // // Send a ping to confirm a successful connection
+    // await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
